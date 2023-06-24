@@ -1,4 +1,4 @@
-# AlphaNAS: Efficient Architecture Discovery for Large Language Models
+# AlphaNAS for LLMs: Framework to Discover Efficient Architecutres Using AlphaZero Methodology
 
 This repository contains the theoretical framework for AlphaNAS, a method for efficiently discovering high-performing and computationally economical architectures for Large Language Models (LLMs). The framework combines Monte Carlo Tree Search (MCTS) with a surrogate model to explore the vast search space of LLM architectures and make informed decisions based on architecture performance and computational cost estimates.
 
