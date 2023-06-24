@@ -17,7 +17,7 @@ Please note that this repository focuses on the theoretical aspects of AlphaNAS,
 
 ## Contributing
 
-Contributions to the AlphaNAS framework are welcome. This is currently a theoretical framework, but we would love to start working on an implementation soon. If you are interested in contributing, please contact the project maintainer: [viraat@inferent.io](mailto:viraat@inferent.io)
+Contributions to the AlphaNAS framework are welcome. This is currently a theoretical framework, but we would love to start working on an implementation soon. If you are interested in contributing, please contact me: [viraat@inferent.io](mailto:viraat@inferent.io)
 
 ## License
 
