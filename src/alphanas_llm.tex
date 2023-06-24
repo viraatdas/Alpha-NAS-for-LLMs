@@ -1,0 +1,337 @@
+\documentclass{article}
+
+
+\usepackage{PRIMEarxiv}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{lipsum}
+\usepackage{fancyhdr}       % header
+\usepackage{graphicx}       % graphics
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage{color}
+\usepackage{algorithmic}
+\graphicspath{{media/}}     % organize your images and other figures under media/ folder
+
+%Header
+\pagestyle{fancy}
+\thispagestyle{empty}
+\rhead{ \textit{ }} 
+
+% Update your Headers here
+\fancyfoot[LO]{\textit{AlphaNAS for LLMs}}
+
+
+
+
+  
+%% Title
+\title{AlphaNAS for LLMs: A Theoretical Framework for Optimizing Large Language Models using AlphaZero Methodology
+%%%% Cite as
+%%%% Update your official citation here when published 
+}
+
+\author{
+  Viraat Das \\
+  InferentIO Labs \\
+  \texttt{viraat@inferent.io} \\
+}
+
+\begin{document}
+\maketitle
+
+
+
+\begin{abstract}
+This paper introduces AlphaNAS, a theoretical framework for efficiently discovering high-performing and computationally economical architectures for large language models. Combining Monte Carlo Tree Search (MCTS) and a surrogate model, AlphaNAS efficiently explores the vast search space of large language models. By iteratively refining the surrogate model with newly explored architectures, AlphaNAS accurately estimates architecture performance and computational cost, enabling more informed decision-making during the search process. The presented work remains theoretical, and empirical evaluation will be a critical step for future studies. With successful validation, AlphaNAS could significantly influence the discovery of efficient architectures, thereby reducing the computational footprint of Large Language Models (LLMs).
+\end{abstract}
+
+% keywords can be removed
+\keywords{NAS \and AlphaZero \and LLM}
+
+\section{Introduction}
+The advent of large language models (LLMs) has played a transformative role in numerous fields, including but not limited to, translation services, question-answering systems, and digital personal assistants. These models have rapidly emerged as one of the most significant breakthroughs in natural language processing. However, their resource-intensive nature poses challenges to their widespread adoption and deployment on edge and mobile devices, which have significant computational limitations.
+
+Addressing this computational cost is of paramount importance as LLMs continue to be integral to many critical applications, with several organizations aiming to provide fine-tuned foundational models on a variety of edge devices. This aligns with the broadening goal of AI democratization, which seeks to make high-performing models more accessible to a larger population. A recent step in this direction has been the release of LLaMA by Meta AI \cite{touvron2023llama}, a state-of-the-art large language model. Designed to be more performant and smaller in size, LLaMA allows researchers and developers with limited infrastructure access to study and leverage these potent models.
+
+Continuing in this vein, the LLaMA-Adapter approach \cite{zhang2023llamaadapter} proposes a lightweight adaptation method for efficiently fine-tuning LLaMA into an instruction-following model. This method demonstrates a successful case of maintaining high model performance while introducing only a minimal number of learnable parameters, thereby reducing computational resources needed. This approach highlights the promise of adaptability in large language models, and points towards a direction of making these models more accessible and efficient.
+
+In line with these efforts, this paper introduces AlphaNAS. This theoretically-grounded framework aims to discover high-performing and computationally economical architectures for LLMs. Combining Monte Carlo Tree Search (MCTS) and a surrogate model, AlphaNAS navigates the vast search space of LLMs more efficiently. The framework refines the surrogate model iteratively based on newly explored architectures, allowing it to accurately estimate architecture performance and computational cost, thereby facilitating informed decision-making during the search process.
+
+While this work remains theoretical, its potential contributions to natural language generation tasks and the broader AI ecosystem are significant. Future research directions include empirical evaluation of AlphaNAS, exploration of variations of MCTS and alternate surrogate models, hardware-specific compilation, and further improvements. With successful validation and implementation, the proposed AlphaNAS framework could pave the way for resource-efficient deployment of large language models, thereby contributing to the broader objectives of AI accessibility and democratization.
+
+
+\section{Related Works}
+
+AlphaNAS draws inspiration from various research areas related to neural architecture search and optimization for large language models (LLMs). We discuss key works that have contributed to the development of AlphaNAS and highlight their relevance to its methodology.
+
+\textit{Neural Architecture Search with Monte Carlo Tree Search (MCTS)}: MCTS has been widely explored in the domain of neural architecture search, and both AlphaNAS and AlphaX incorporate it as a fundamental component. Prior works such as DeepArchitect by Negrinho and Gordon (2017) and Wistuba (2017) employed vanilla MCTS for architecture exploration. In comparison, AlphaNAS distinguishes itself from AlphaX by focusing on efficient architecture exploration for LLMs without incorporating a meta-Deep Neural Network (DNN) like AlphaX \cite{wang2019neural, wang2019alphax}. Instead, AlphaNAS introduces its own strategies and optimizations, such as surrogate models and iterative updates, to enhance the search process and discover LLM architectures that balance performance and computational efficiency.
+
+\textit{AlphaZero and Reinforcement Learning}: The influential work of AlphaZero by Silver et al. \cite{silver2017mastering} in game-playing agents has inspired AlphaNAS. AlphaZero demonstrated the power of combining reinforcement learning with tree search algorithms, achieving state-of-the-art performance in various board games. AlphaNAS adopts a similar strategy, integrating MCTS with surrogate models \cite{wang2019neural, wang2019alphax}. While AlphaZero focused on game-specific architectures, AlphaNAS extends this concept to the domain of LLMs, applying it to the search for optimal language model architectures.
+
+\textit{Surrogate Models}: Surrogate models in AlphaNAS provide efficient estimates of architecture performance and computational cost, serving as approximations of the true objective function \cite{NegrinhoG17}. Trained using evaluated architectures and their performance metrics, these models capture patterns and relationships between architectural configurations and outcomes. By leveraging surrogate models, AlphaNAS reduces computational burden, enables more efficient exploration of the architecture space, and leverages knowledge from previously evaluated architectures \cite{wang2019neural, wang2019alphax}. Iterative updates refine the surrogate models, improving their predictive capabilities and search efficiency. The use of surrogate models in AlphaNAS facilitates the discovery of high-performing models in the complex search space of LLM architectures.
+\section{Overview of AlphaNAS for LLMs}
+
+\subsection{Problem Definition}
+The primary goal of AlphaNAS is to search for an optimal architecture that minimizes computational cost while maintaining or improving the performance of LLMs. This can be mathematically expressed as follows:
+
+\begin{equation}
+\underset{a \in \mathcal{A}}{\operatorname{argmin}} [f(a) + g(a)]
+\end{equation}
+
+where:
+\begin{itemize}
+\item $\mathcal{A}$ is the search space of LLM architectures
+\item $f(a)$ is the estimated computational cost of architecture $a$
+\item $g(a)$ is a measure of the model's performance such as perplexity or negative log-likelihood
+\end{itemize}
+
+\subsection{High-level Procedure}
+AlphaNAS leverages a combination of MCTS and surrogate models to effectively explore the architecture space for LLMs. It maintains a balance between exploration of new architectures and exploitation of known architectures.
+
+To address this problem, AlphaNAS combines two key components: Monte Carlo Tree Search (MCTS) and surrogate models. MCTS enables efficient exploration and exploitation of the architecture space, while surrogate models provide quick estimates of architecture performance and computational cost. This combination allows for effective navigation of the search space and the discovery of high-performing and computationally efficient architectures for LLMs.
+
+The high-level overview of AlphaNAS is summarized in Algorithm 1. At each iteration of the MCTS, the algorithm selects an architecture $a_i$ using the current surrogate model and evaluates it to obtain its performance metric $y_i$ and computational cost $c_i$. The dataset $\mathcal{D}$ is updated with the new architecture and its associated metrics. The surrogate model is then retrained on the updated dataset, improving its predictions. This iterative process continues for multiple MCTS iterations, gradually refining the surrogate model and guiding the search towards optimal architectures.
+
+\begin{algorithm}
+\caption{AlphaNAS Overview}
+\begin{algorithmic}[1]
+\STATE \textbf{Initialize:} Surrogate model $h(a;\Theta)$, dataset $\mathcal{D} \gets \emptyset$
+\FOR{each MCTS iteration $i$}
+\STATE Run MCTS with current surrogate model to select architecture $a_i$
+\STATE Evaluate $a_i$ to obtain performance metric $y_i$ and computational cost $c_i$
+\STATE Update $\mathcal{D}$: $\mathcal{D} \gets \mathcal{D} \cup {(a_i, y_i, c_i)}$
+\STATE Retrain surrogate model on updated $\mathcal{D}$: $\Theta \gets \underset{\Theta}{\operatorname{argmin}} \mathcal{L}(\Theta; \mathcal{D})$
+\ENDFOR
+\STATE \textbf{Return:} Surrogate model $h(a;\Theta)$
+\end{algorithmic}
+\end{algorithm}
+
+By iteratively updating the surrogate model and exploring the architecture space with MCTS, AlphaNAS gradually improves its ability to discover architectures that strike a balance between computational efficiency and model performance for LLMs.
+
+\section{Monte Carlo Tree Search (MCTS) in AlphaNAS}
+The AlphaNAS system employs MCTS to traverse the search space $\mathcal{A}$ efficiently. MCTS is a tree-based search algorithm that balances exploration and exploitation to navigate complex search spaces effectively. The MCTS algorithm consists of four main stages: selection, expansion, simulation, and backpropagation. We start out by defining how to construct the Search Space.
+
+\subsection{Search Space Definition}
+The search space $\mathcal{A}$ consists of a wide variety of LLM architectures, represented as a Cartesian product of sets corresponding to different architectural components and their configurations:
+
+\begin{equation}
+\mathcal{A} = \mathcal{L} \times \mathcal{T} \times \mathcal{C}
+\end{equation}
+
+where
+\begin{itemize}
+\item $\mathcal{L}$ is the set of potential layer counts
+\item $\mathcal{T}$ is the set of layer types (e.g., transformer, LSTM, GRU)
+\item $\mathcal{C}$ is the set of configurations within layers (e.g., attention head counts in transformer layers)
+\end{itemize}
+
+Each element $a \in \mathcal{A}$ denotes a specific LLM architecture, characterized by its layer count, layer type, and configurations within layers. By systematically exploring and evaluating various combinations of architectural choices, AlphaNAS enables the discovery of architectures that balance performance and computational efficiency.
+
+\subsection{Monte Carlo Tree Search (MCTS)}
+
+The AlphaNAS system employs MCTS to traverse the search space $\mathcal{A}$ efficiently. MCTS is a tree-based search algorithm that balances exploration and exploitation to navigate complex search spaces effectively. The MCTS algorithm consists of four main stages: selection, expansion, simulation, and backpropagation.
+
+\subsection{Definition of Terms}
+\begin{itemize}
+\item $Q(s,a)$ is the average reward observed for action $a$ in state $s$
+\item $N(s)$ is the number of times state $s$ has been visited
+\item $N(s,a)$ is the number of times action $a$ has been taken in state $s$
+\item c is a constant that controls the balance between exploration and exploitation
+\item $\mathcal{A}$ is the search space for the LLM arhictectures
+\end{itemize}
+
+\subsubsection{Selection}
+
+Starting from the root node, the algorithm traverses the search tree based on the UCB1 (Upper Confidence Bound 1) formula:
+
+\begin{equation}
+a = \underset{a \in \mathcal{A}(s)}{\operatorname{argmax}} \left[Q(s, a) + c \sqrt{\frac{2 \log(N(s))}{N(s, a)}}\right]
+\end{equation}
+
+
+In the selection stage, the AlphaNAS system traverses the search tree from the root node to a leaf node. At each node, an action corresponding to a potential modification in the architecture is selected. This selection is based on the UCB1 formula, which balances exploration (trying out less-visited actions) and exploitation (choosing actions with high expected rewards).
+
+For example, consider a node representing an architecture with two Transformer layers. The potential actions at this node might include adding another layer, changing a Transformer layer to an LSTM layer, or adjusting the number of attention heads in one of the Transformer layers. AlphaNAS would select the action that has the highest UCB1 score, reflecting either a high expected reward or a high potential for exploration.
+
+\subsubsection{Expansion}
+
+Upon reaching a leaf node, the expansion stage occurs, where new child nodes representing modified architectures are added to the search tree. The specific transformations depend on the available actions defined by the search space.
+
+During the expansion stage, AlphaNAS adds new child nodes to the search tree, representing architectures modified according to the action chosen during the selection stage.
+
+Continuing from the example above, if the chosen action was to add another layer, the new node added during the expansion stage would represent an architecture with three Transformer layers. If the action was to change a Transformer layer to an LSTM layer, the new node would represent an architecture with one Transformer layer and one LSTM layer.
+
+Once a leaf node $s$ is reached, new child nodes are added to the tree. Each child node corresponds to an action $a \in \mathcal{A}(s)$ that could be taken in the current state. 
+
+\subsubsection{Simulation}
+
+The simulation stage involves the estimation of the newly added architectures' performance. Due to the high computational cost of fully training and evaluating each possible architecture, AlphaNAS uses a surrogate model to quickly estimate the architecture's performance. The surrogate model is further explained in Section \ref{sec:surrogate}.
+
+For instance, the surrogate model might estimate the performance of the new architecture with three Transformer layers to be a perplexity of 20 on a validation set. Alternatively, for the architecture with one Transformer layer and one LSTM layer, the surrogate model might estimate a higher perplexity of 25.
+
+The simulation stage involves the evaluation of newly expanded nodes. Specifically, a reward $r$ is estimated for each new child node $s'$ using a surrogate model, denoted as $h(a;\Theta)$. The surrogate model estimates the performance of architecture $a$ parameterized by $\Theta$.
+
+\begin{equation}
+r = h(s';\Theta)
+\end{equation}
+
+This reward $r$ is an estimation of the model's performance, such as its perplexity or negative log-likelihood.
+
+\subsubsection{Backpropagation}
+Finally, during the backpropagation stage, the statistics and rewards estimated during the simulation are propagated back up the tree to the root node. The values of all visited nodes and edges in the tree are updated, allowing the system to learn from the simulations.
+
+In our ongoing example, the new estimated performances (perplexities) of the child nodes would be backpropagated up to the parent node. This would update the parent node's understanding of the expected rewards associated with each action, informing future selection stages.
+
+The rewards and statistics obtained from the simulation stage are used to update the values of the nodes and edges traversed during the selection stage. Specifically, for each visited state-action pair $(s, a)$, the visit count $N(s, a)$ is incremented and the average reward $Q(s, a)$ is updated as follows:
+
+\begin{align*}
+N(s, a) &\gets N(s, a) + 1 \\
+Q(s, a) &\gets Q(s, a) + \frac{r - Q(s, a)}{N(s, a)}
+\end{align*}
+
+Here, $r$ is the reward estimated during the simulation stage.
+
+This backpropagation process ensures that the estimated rewards and visit counts of the state-action pairs are kept up to date, which guides the selection of actions in future iterations of the search.
+
+\section{Surrogate Model}
+\label{sec:surrogate}
+
+The surrogate model plays an essential role within AlphaNAS, allowing for a streamlined search within the architecture space without the need for exhaustive training and evaluation of every architecture.
+
+\subsection{Definition of Terms and Variables}
+
+\begin{itemize}
+\item $a$: This represents a specific architecture drawn from the complete architecture space, denoted as $\mathcal{A}$.
+\item $h(a;\Theta)$: This function signifies the surrogate model's estimate of the performance for a given architecture $a$, influenced by the current state of its parameters $\Theta$.
+\item $y$: This variable captures the actual performance of the architecture $a$, as derived from thorough training and evaluation.
+\item $c(a;\Theta)$: This function stands for the surrogate model's estimate of the computational cost for the architecture $a$. Like the performance estimate, this also depends on the model's parameters $\Theta$.
+\item $c$: This represents the genuine computational cost incurred while training and evaluating the architecture $a$.
+\item $\mathcal{D}$: This symbolizes the dataset compiled for this process. $\mathcal{D}$ houses a set of triples $(a, y, c)$, each capturing a unique architecture, its real-world performance, and its actual computational cost.
+\item $\mathcal{A}$: This encapsulates the comprehensive architecture space encompassing all conceivable architectures that could be evaluated.
+\item $\lambda$: This stands for a hyperparameter utilized in the model's loss function. Its value determines the balance between the emphasis placed on the accuracy of the model's performance prediction and its computational cost prediction.
+\end{itemize}
+
+\subsection{Surrogate Model Construction}
+
+The construction of the surrogate model involves two main steps: Initialization and Surrogate Model Training.
+
+\subsubsection{Initialization}
+
+In the initialization step, a random subset of architectures is sampled from the architecture space $\mathcal{A}$. For each selected architecture $a$, a full-scale training and evaluation process is performed, which results in obtaining an actual performance $y$ and a computational cost $c$. The performance $y$ can be calculated using a number of metrics, including accuracy, precision, recall, F1-score, or, for text generation tasks, metrics such as the G-Eval framework.
+
+The computational cost $c$ is calculated considering both the training phase, which includes the total number of Floating Point Operations (FLOPs) required for training the architecture on a specific dataset and memory usage during training, and the inference phase, which includes the total FLOPs required for a single forward pass during the prediction phase after training and the memory used during inference.
+
+These results $(a, y, c)$ are then encapsulated into a triple and stored in the dataset $\mathcal{D}$, providing the initial training data for the surrogate model. In this triple, $a$ represents an architecture, $y$ is the actual performance of $a$, and $c$ is the actual computational cost of $a$.
+
+\subsubsection{Surrogate Model Training}
+
+After obtaining the dataset $\mathcal{D}$, the surrogate model parameters $\Theta$ are trained by minimizing the loss function $\mathcal{L}$, defined as follows:
+
+\begin{equation}
+\Theta^* = \underset{\Theta}{\operatorname{argmin}} \mathcal{L}(\Theta;\mathcal{D})
+\end{equation}
+
+\begin{equation}
+\mathcal{L}(\Theta;\mathcal{D}) = \frac{1}{|\mathcal{D}|} \sum_{(a,y,c) \in \mathcal{D}} \left[\lambda(h(a;\Theta)-y)^2 + (1-\lambda)(c(a;\Theta)-c)^2\right]
+\end{equation}
+
+\begin{enumerate}
+    \item The surrogate model $h(a;\Theta)$ generates an estimate of the architecture's performance.
+    \item $c(a;\Theta)$ estimates its computational cost.
+    \item The loss function $\mathcal{L}$ minimizes the difference between the surrogate model's predictions and the actual values $(y, c)$, for each architecture triple in $\mathcal{D}$
+    \item $\lambda$ is a hyperparameter balancing the trade-off between performance prediction and computational cost prediction.
+\end{enumerate}
+
+
+
+\subsubsection{Iterative Update of the Surrogate Model}
+
+Once the surrogate model has been initialized and trained, the following iterative process is performed:
+
+\textbf{Step 1: Exploration}
+
+The surrogate model is utilized to guide the exploration of the architecture space $\mathcal{A}$. It predicts the performance and computational cost of unseen architectures, and based on these predictions, a potentially promising architecture $a_i$ is selected for evaluation.
+
+\textbf{Step 2: Evaluation of Selected Architecture}
+
+The selected architecture $a_i$ is fully trained and evaluated, obtaining its actual performance $y_i$ and computational cost $c_i$. These results are encapsulated into a new triple $(a_i, y_i, c_i)$ and added to the dataset $\mathcal{D}$.
+
+\textbf{Step 3: Surrogate Model Update}
+
+The surrogate model parameters $\Theta$ are updated by re-optimizing the loss function $\mathcal{L}$ using the updated dataset $\mathcal{D}$.
+
+\begin{equation}
+\Theta \gets \underset{\Theta}{\operatorname{argmin}} \mathcal{L}(\Theta; \mathcal{D})
+\end{equation}
+
+These steps are repeated, iteratively refining the surrogate model's predictive power and guiding the search for architectures through the architecture space $\mathcal{A}$. Over time, this iterative process should guide the model towards increasingly effective and efficient architectures for the given task.
+
+\subsection{Final Architecture Selection}
+
+The final architecture, $a^*$, is selected to maximize the estimated performance while adhering to computational constraints:
+
+\begin{equation}
+a^* = \underset{a \in \mathcal{A}}{\operatorname{argmax}} [h(a;\Theta) - \lambda c(a;\Theta)]
+\end{equation}
+
+Here, $\lambda$ is used again to balance the trade-off between performance and computational cost.
+
+\subsection{Summary}
+
+This is the procedure summarized:
+
+\begin{algorithm}
+\caption{AlphaNAS Surrogate Model Construction and Training}
+\begin{algorithmic}[1]
+\STATE Initialize dataset $\mathcal{D} \leftarrow \emptyset$
+\FOR{each $a$ in a set of randomly sampled architectures from $\mathcal{A}$}
+    \STATE Train and evaluate $a$, obtaining performance $y$ and cost $c$
+    \STATE Add the triple $(a, y, c)$ to $\mathcal{D}$
+\ENDFOR
+\STATE Train surrogate model $h(a;\Theta)$ using $\mathcal{D}$, optimizing $\Theta$ by minimizing the loss function $\mathcal{L}$
+\WHILE{architecture search is not complete}
+    \STATE Use surrogate model to select a potentially promising architecture $a_i$ from $\mathcal{A}$
+    \STATE Train and evaluate $a_i$, obtaining performance $y_i$ and cost $c_i$
+    \STATE Add the triple $(a_i, y_i, c_i)$ to $\mathcal{D}$
+    \STATE Re-train the surrogate model using the updated $\mathcal{D}$
+\ENDWHILE
+\STATE Select the final architecture $a^*$ as $a^* = \underset{a \in \mathcal{A}}{\operatorname{argmax}} [h(a;\Theta) - \lambda c(a;\Theta)]$
+\end{algorithmic}
+\end{algorithm}
+
+\section{Future Works}
+
+This paper lays the theoretical groundwork for utilizing Monte Carlo Tree Search (MCTS) and surrogate models to uncover efficient architectures for large language models. To advance this groundwork and substantiate its practicality, there are several possible paths for future exploration:
+
+\subsection{Empirical Validation}
+
+Implementation of the outlined AlphaNAS framework, and proceeding with rigorous experiments, forms the next necessary step in the empirical validation of its potential. This includes a comprehensive evaluation against existing architecture search methods, benchmarked across various metrics and datasets, thus offering a thorough examination of its efficacy and efficiency in identifying performant and cost-effective architectures for large language models.
+
+
+\subsection{Integration of Hardware-Aware NAS}
+
+The integration of a hardware-conscious model within the optimization framework could act as a form of low-level optimization. Inspired by the research of Cummings et al. \cite{cummings2022hardwareaware}, which proposed a strategy to expedite the neural architecture search process by acknowledging the specific attributes of the intended hardware, similar incorporations could serve to enhance AlphaNAS. Such an approach would aid in the identification of architectures that deliver superior performance while also maintaining compatibility with the specific computational constraints of the hardware environment intended for deployment.
+
+\subsection{Expansion Towards Pruned Architectures}
+
+Another direction to consider is extending the AlphaNAS framework to account for pruned architectures. Building on the work of Frantar and Alistarh \cite{frantar2023sparsegpt}, who exhibited that large language models could be pruned in a one-shot method while maintaining their accuracy, AlphaNAS could integrate this concept. Consequently, this would enable the framework to discover both the original and pruned architecture variations, potentially leading to architectures that are more efficient and performance-optimized.
+
+\section{Conclusion}
+
+AlphaNAS is a proposed framework that combines Monte Carlo Tree Search (MCTS) and a surrogate model to efficiently explore the search space of large language models. By continually updating the surrogate model based on newly explored architectures, AlphaNAS allows for efficient estimates of architecture performance and computational cost, facilitating informed decisions during the search process. While our discussion has primarily focused on the theoretical aspects, empirical evaluation remains an important future direction to validate the effectiveness and practical applicability of AlphaNAS. The proposed framework lays the groundwork for a potential research direction for discovering high-performing and computationally efficient architectures for large language models, contributing to advancements in natural language generation tasks.
+
+
+%Bibliography
+\bibliographystyle{unsrt}  
+\bibliography{references}  
+
+\end{document}
+

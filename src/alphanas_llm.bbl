@@ -1,0 +1,44 @@
+\begin{thebibliography}{1}
+
+\bibitem{touvron2023llama}
+Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne
+  Lachaux, Timothée Lacroix, Baptiste Rozière, Naman Goyal, Eric Hambro,
+  Faisal Azhar, Aurelien Rodriguez, Armand Joulin, Edouard Grave, and Guillaume
+  Lample.
+\newblock Llama: Open and efficient foundation language models, 2023.
+
+\bibitem{zhang2023llamaadapter}
+Renrui Zhang, Jiaming Han, Chris Liu, Peng Gao, Aojun Zhou, Xiangfei Hu, Shilin
+  Yan, Pan Lu, Hongsheng Li, and Yu~Qiao.
+\newblock Llama-adapter: Efficient fine-tuning of language models with
+  zero-init attention, 2023.
+
+\bibitem{wang2019neural}
+Linnan Wang, Yiyang Zhao, Yuu Jinnai, Yuandong Tian, and Rodrigo Fonseca.
+\newblock Neural architecture search using deep neural networks and monte carlo
+  tree search, 2019.
+
+\bibitem{wang2019alphax}
+Linnan Wang, Yiyang Zhao, Yuu Jinnai, Yuandong Tian, and Rodrigo Fonseca.
+\newblock Alphax: exploring neural architectures with deep neural networks and
+  monte carlo tree search, 2019.
+
+\bibitem{silver2017mastering}
+David Silver, Thomas Hubert, Julian Schrittwieser, Ioannis Antonoglou, Matthew
+  Lai, Arthur Guez, Marc Lanctot, Laurent Sifre, Dharshan Kumaran, Thore
+  Graepel, Timothy Lillicrap, Karen Simonyan, and Demis Hassabis.
+\newblock Mastering chess and shogi by self-play with a general reinforcement
+  learning algorithm, 2017.
+
+\bibitem{cummings2022hardwareaware}
+Daniel Cummings, Anthony Sarah, Sharath~Nittur Sridhar, Maciej Szankin,
+  Juan~Pablo Munoz, and Sairam Sundaresan.
+\newblock A hardware-aware framework for accelerating neural architecture
+  search across modalities, 2022.
+
+\bibitem{frantar2023sparsegpt}
+Elias Frantar and Dan Alistarh.
+\newblock Sparsegpt: Massive language models can be accurately pruned in
+  one-shot, 2023.
+
+\end{thebibliography}
